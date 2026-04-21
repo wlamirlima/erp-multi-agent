@@ -1,0 +1,14 @@
+# Ambiente Virtual
+venv/
+.venv/
+env/
+
+# Configurações e Chaves (Segurança!)
+.env
+
+# Banco de dados local (opcional, se quiser que o recrutador use o dele)
+# erp_mock.db
+
+# Arquivos do Python
+__pycache__/
+*.pyc
