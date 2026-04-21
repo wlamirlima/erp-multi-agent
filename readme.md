@@ -1,5 +1,6 @@
 # 🤖 Agente ERP Inteligente com Orquestração LangGraph
-
+<img width="1920" height="1035" alt="image" src="https://github.com/user-attachments/assets/caca22b7-520d-4371-b99c-ba5cacaad5da" />
+<br><br>
 Este projeto consiste em um **Agente de IA Autônomo (AI Agent)** integrado a um banco de dados relacional (ERP simulado). O sistema utiliza modelos de linguagem de última geração para interpretar solicitações em linguagem natural, decidir pela execução de ferramentas externas e processar dados estruturados de forma resiliente.
 
 ## 🏗️ Diferenciais do Projeto (Mentalidade de Infraestrutura)
