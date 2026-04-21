@@ -9,12 +9,10 @@ from langchain_core.messages import HumanMessage
 
 load_dotenv()
 
-# --- 1. SCANNER DE REDE / DISCOVERY DE MODELOS ---
 def discovery_modelo():
     print("\n--- 🔍 Scanner ativado: Procurando modelo disponível na sua chave... ---")
     genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
     
-    # Nossa lista de prioridade (estabilidade e cota)
     check_list = [
         "models/gemini-1.5-flash",
         "models/gemini-flash-latest",
@@ -34,7 +32,6 @@ def discovery_modelo():
     print("⚠️ Nenhum modelo da lista encontrado, usando fallback padrão.")
     return "models/gemini-1.5-flash"
 
-# --- 2. DEFINIÇÃO DA FERRAMENTA (BRAÇO DO AGENTE) ---
 @tool
 def consultar_pedido(id_pedido: int) -> str:
     """Consulta o banco de dados do ERP para descobrir o status de um pedido."""
@@ -52,7 +49,7 @@ def consultar_pedido(id_pedido: int) -> str:
     except Exception as e:
         return f"Erro no banco: {str(e)}"
 
-# --- 3. INICIALIZAÇÃO DINÂMICA ---
+
 modelo_ativo = discovery_modelo()
 llm = ChatGoogleGenerativeAI(model=modelo_ativo, temperature=0)
 agente_erp = create_react_agent(llm, [consultar_pedido])
@@ -61,7 +58,6 @@ print("===================================================")
 print("🤖 Agente ERP Online. (Digite 'sair' para encerrar)")
 print("===================================================")
 
-# --- 4. LOOP DE CONVERSA ---
 while True:
     pergunta_usuario = input("\nVocê: ")
     if pergunta_usuario.lower() in ['sair', 'exit', 'quit']:
@@ -72,7 +68,6 @@ while True:
         estado_final = agente_erp.invoke({"messages": [HumanMessage(content=pergunta_usuario)]})
         conteudo = estado_final["messages"][-1].content
         
-        # Limpa o formato se vier como lista
         resposta_ia = conteudo[0].get('text', str(conteudo[0])) if isinstance(conteudo, list) else conteudo
         print(f"Agente: {resposta_ia}")
 
