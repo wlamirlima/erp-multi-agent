@@ -1,11 +1,9 @@
 import sqlite3
 
 def init_db():
-    # Conecta (ou cria) o arquivo do banco de dados
     conn = sqlite3.connect("erp_mock.db")
     cursor = conn.cursor()
 
-    # Cria uma tabela simulando pedidos de equipamentos de rede
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS pedidos (
             id INTEGER PRIMARY KEY,
@@ -16,7 +14,6 @@ def init_db():
         )
     ''')
 
-    # Verifica se já tem dados. Se não tiver, insere alguns de teste
     cursor.execute("SELECT COUNT(*) FROM pedidos")
     if cursor.fetchone()[0] == 0:
         pedidos_mock = [
