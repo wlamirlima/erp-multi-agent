@@ -4,5 +4,7 @@ env/
 
 .env
 
+*.db
+
 __pycache__/
 *.pyc
