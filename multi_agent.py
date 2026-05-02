@@ -1,8 +1,13 @@
 import os
 import sqlite3
-from dotenv import load_dotenv
+import warnings
 
-# Importações para o RAG e Agentes
+# --- BLOCO DE LIMPEZA TOTAL (Deve vir antes dos outros imports) ---
+warnings.filterwarnings("ignore")
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+
+from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -11,66 +16,62 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage
 import google.generativeai as genai
 
-# Carrega as chaves e ativa o rastreamento do LangSmith
 load_dotenv()
 
-# --- FUNÇÃO DE DESCOBERTA DE MODELO ---
+# --- DESCOBERTA DO MODELO FLASH (MAIS RÁPIDO) ---
 def discovery_modelo():
-    """Busca o modelo Gemini disponível na sua conta para evitar erro 404."""
     genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
     modelos = [m.name for m in genai.list_models() if "generateContent" in m.supported_generation_methods]
-    # Prioriza o flash, se não achar, pega o primeiro disponível
+    # Prioriza o Gemini 3 Flash (Disponível para Tier Paid)
     for m in modelos:
-        if "gemini-1.5-flash" in m:
+        if "gemini-3-flash" in m:
             return m
     return modelos[0] if modelos else "gemini-pro"
 
-# --- CONFIGURAÇÃO DO RAG (Base de Conhecimento) ---
+# --- CONFIGURAÇÃO DO RAG ---
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-
-# Lê o manual técnico
 with open("data/manuais.md", "r", encoding="utf-8") as f:
     texto_manual = f.read()
-
 vectorstore = FAISS.from_texts([texto_manual], embeddings)
 retriever = vectorstore.as_retriever()
 
-# --- FERRAMENTA 1: SUPORTE TÉCNICO (RAG) ---
 @tool
 def consultar_manual_tecnico(pergunta: str) -> str:
-    """Consulta manuais técnicos para resolver problemas de redes ou dúvidas do ERP."""
+    """Consulta manuais técnicos para resolver problemas de redes."""
     docs = retriever.invoke(pergunta)
     return "\n\n".join([doc.page_content for doc in docs])
 
-# --- FERRAMENTA 2: VENDAS (SQL) ---
 @tool
-def consultar_pedido(id_pedido: int) -> str:
-    """Consulta o status de um pedido no banco de dados ERP."""
+def consultar_pedido(termo: str) -> str:
+    """Consulta pedidos por ID ou Nome do Cliente."""
     conn = sqlite3.connect("erp_mock.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT cliente, produto, status FROM pedidos WHERE id = ?", (id_pedido,))
+    if str(termo).isdigit():
+        cursor.execute("SELECT id, cliente, produto, status FROM pedidos WHERE id = ?", (int(termo),))
+    else:
+        cursor.execute("SELECT id, cliente, produto, status FROM pedidos WHERE cliente LIKE ?", (f'%{termo}%',))
     res = cursor.fetchone()
     conn.close()
-    return f"Pedido {id_pedido}: {res[0]} comprou {res[1]}. Status: {res[2]}" if res else "Pedido não encontrado."
+    if res:
+        return f"Pedido {res[0]}: {res[1]} comprou {res[2]}. Status: {res[3]}"
+    return "Pedido não encontrado."
 
-# --- 4. INICIALIZAÇÃO DINÂMICA ---
-modelo_disponivel = discovery_modelo()
-print(f"✅ Usando modelo: {modelo_disponivel}")
-print("✅ Infraestrutura LangSmith ativa!")
+# --- INICIALIZAÇÃO ---
+modelo_fast = discovery_modelo()
+print(f"✅ Modelo Ativo: {modelo_fast}")
 
-llm = ChatGoogleGenerativeAI(model=modelo_disponivel, temperature=0)
+llm = ChatGoogleGenerativeAI(model=modelo_fast, temperature=0)
 tools = [consultar_pedido, consultar_manual_tecnico]
 agente_sistema = create_react_agent(llm, tools)
 
-# --- 5. LOOP DE INTERAÇÃO ---
+# --- LOOP DE INTERAÇÃO LIMPO (SEM SIGNATURE) ---
 print("\n" + "="*50)
 print("🤖 Sistema Multi-Agente Online!")
-print("Pergunte sobre pedidos ou dúvidas técnicas (ou 'sair')")
 print("="*50)
 
 while True:
     pergunta = input("\nVocê: ")
-    if pergunta.lower() in ["sair", "exit", "quit"]:
+    if pergunta.lower() in ["sair", "exit"]:
         break
     
     inputs = {"messages": [HumanMessage(content=pergunta)]}
@@ -78,6 +79,9 @@ while True:
         for output in agente_sistema.stream(inputs, stream_mode="updates"):
             for node, values in output.items():
                 if "messages" in values:
-                    print(f"\nAssistente: {values['messages'][-1].content}")
+                    msg_obj = values['messages'][-1]
+                    if hasattr(msg_obj, 'content') and msg_obj.content:
+                        if isinstance(msg_obj.content, str):
+                            print(f"\nAssistente: {msg_obj.content.strip()}")
     except Exception as e:
-        print(f"\n❌ Erro na resposta: {e}")
+        print(f"\n❌ Erro: {e}")
