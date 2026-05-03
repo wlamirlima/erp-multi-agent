@@ -12,6 +12,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.tools import tool
 from langgraph.prebuilt import create_react_agent
+from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import HumanMessage
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import google.generativeai as genai
@@ -19,7 +20,6 @@ import google.generativeai as genai
 load_dotenv()
 
 def discovery_modelo():
-    """Detecta o nome exato do modelo Flash disponível na sua chave de API."""
     genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
     try:
         modelos = [m.name for m in genai.list_models() if "generateContent" in m.supported_generation_methods]
@@ -37,8 +37,7 @@ with open("data/manuais.md", "r", encoding="utf-8") as f:
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=100)
 docs = text_splitter.create_documents([texto_manual])
 vectorstore = FAISS.from_documents(docs, embeddings)
-retriever = vectorstore.as_retriever(search_kwargs={"k": 2})
-
+retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
 @tool
 def consultar_manual_tecnico(pergunta: str) -> str:
     """Consulta manuais técnicos para resolver problemas de redes."""
@@ -65,11 +64,15 @@ print(f"✅ Link Estabilizado: {nome_modelo}")
 
 llm = ChatGoogleGenerativeAI(model=nome_modelo, temperature=0)
 tools = [consultar_pedido, consultar_manual_tecnico]
-agente_sistema = create_react_agent(llm, tools)
+
+memory = MemorySaver()
+agente_sistema = create_react_agent(llm, tools, checkpointer=memory)
 
 print("\n" + "="*50)
-print("🤖 Sistema Multi-Agente Online!")
+print("🤖 Sistema Multi-Agente Online")
 print("="*50)
+
+config = {"configurable": {"thread_id": "sessao_engenheiro_wlamir"}}
 
 while True:
     pergunta = input("\nVocê: ")
@@ -78,9 +81,8 @@ while True:
     
     inputs = {"messages": [HumanMessage(content=pergunta)]}
     try:
-        
         final_event = None
-        for event in agente_sistema.stream(inputs, stream_mode="values"):
+        for event in agente_sistema.stream(inputs, config=config, stream_mode="values"):
             final_event = event
         
         if final_event:
@@ -88,7 +90,6 @@ while True:
             conteudo = msg_obj.content
             
             if isinstance(conteudo, list):
-                
                 resposta_final = " ".join([str(c.get("text", c)) if isinstance(c, dict) else str(c) for c in conteudo])
             else:
                 resposta_final = str(conteudo)

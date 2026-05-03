@@ -61,3 +61,21 @@
 - **SLA de Atendimento**: 
   - Clientes Gold (Links Dedicados): 4 horas para restabelecimento.
   - Clientes Standard (FTTH): 24 horas úteis.
+
+# --- SEÇÃO DE INTELIGÊNCIA ANALÍTICA (IA OPTIMIZED) ---
+
+## [POLÍTICAS DE DECISÃO TÉCNICA E PROBABILIDADES]
+- **CENÁRIO: BGP State: Idle / Connect**
+  - **85% de probabilidade**: Falta de rota (unreach) para o Peer IP. AÇÃO: Verificar `/ip route print`.
+  - **15% de probabilidade**: Bloqueio de Firewall na porta TCP 179. AÇÃO: Verificar `chain=input` no MikroTik.
+- **CENÁRIO: Sinal Óptico Alto (>-15dBm)**
+  - **Diagnóstico**: Risco de queima do receptor óptico. AÇÃO: Instalar atenuador de 5dB ou 10dB imediatamente.
+
+## [METADADOS DE HARDWARE E ESPECIFICAÇÕES (JSON-STYLE)]
+- **ORBCOMM ST6100**: {"frequencia": "1626.5 – 1660.5 MHz", "io_interfaces": "4 Analógicas/Digitais", "alimentacao": "9 a 32V DC", "uso": "Logística e Estações INMET"}
+- **MIKROTIK CCR2116-12G-4S+**: {"cpu": "16-core 2GHz", "ram": "16GB DDR4", "portas_10G": "4x SFP+", "perfil": "BGP Full Routing"}
+
+## [MATRIZ SEMÂNTICA E SINÔNIMOS]
+- **Trânsito IP** <-> **Link Dedicado** <-> **Upstream**
+- **ONU** <-> **ONT** <-> **Modem da Fibra** <-> **CPE Óptica**
+- **Luz Vermelha** <-> **LOS (Loss of Signal)** <-> **Sinal Rompido**
