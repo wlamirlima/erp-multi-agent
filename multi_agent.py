@@ -1,10 +1,13 @@
 import os
 import sqlite3
 import warnings
+import sys
+import subprocess
 
 warnings.filterwarnings("ignore")
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = '1'
 
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -16,6 +19,12 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.messages import HumanMessage
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import google.generativeai as genai
+
+try:
+    from huggingface_hub.utils import disable_progress_bar
+    disable_progress_bar()
+except ImportError:
+    pass
 
 load_dotenv()
 
@@ -30,7 +39,14 @@ def discovery_modelo():
     except Exception:
         return "models/gemini-1.5-flash"
 
+sys.stdout = open(os.devnull, 'w')
+sys.stderr = open(os.devnull, 'w')
+
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+
+sys.stdout = sys.__stdout__
+sys.stderr = sys.__stderr__
+
 with open("data/manuais.md", "r", encoding="utf-8") as f:
     texto_manual = f.read()
 
@@ -38,6 +54,7 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size=600, chunk_overlap=100
 docs = text_splitter.create_documents([texto_manual])
 vectorstore = FAISS.from_documents(docs, embeddings)
 retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
+
 @tool
 def consultar_manual_tecnico(pergunta: str) -> str:
     """Consulta manuais técnicos para resolver problemas de redes."""
@@ -60,7 +77,10 @@ def consultar_pedido(termo: str) -> str:
     return "Pedido não encontrado."
 
 nome_modelo = discovery_modelo()
-print(f"✅ Link Estabilizado: {nome_modelo}")
+
+subprocess.run("cls", shell=True)
+
+print(f"✅ Modelo Estabilizado: {nome_modelo}")
 
 llm = ChatGoogleGenerativeAI(model=nome_modelo, temperature=0)
 tools = [consultar_pedido, consultar_manual_tecnico]
