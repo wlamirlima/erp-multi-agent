@@ -2,7 +2,6 @@ import os
 import sqlite3
 import warnings
 
-# --- BLOCO DE LIMPEZA TOTAL (Deve vir antes dos outros imports) ---
 warnings.filterwarnings("ignore")
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
@@ -18,17 +17,15 @@ import google.generativeai as genai
 
 load_dotenv()
 
-# --- DESCOBERTA DO MODELO FLASH (MAIS RÁPIDO) ---
 def discovery_modelo():
     genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
     modelos = [m.name for m in genai.list_models() if "generateContent" in m.supported_generation_methods]
-    # Prioriza o Gemini 3 Flash (Disponível para Tier Paid)
+    
     for m in modelos:
         if "gemini-3-flash" in m:
             return m
     return modelos[0] if modelos else "gemini-pro"
 
-# --- CONFIGURAÇÃO DO RAG ---
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 with open("data/manuais.md", "r", encoding="utf-8") as f:
     texto_manual = f.read()
@@ -56,7 +53,6 @@ def consultar_pedido(termo: str) -> str:
         return f"Pedido {res[0]}: {res[1]} comprou {res[2]}. Status: {res[3]}"
     return "Pedido não encontrado."
 
-# --- INICIALIZAÇÃO ---
 modelo_fast = discovery_modelo()
 print(f"✅ Modelo Ativo: {modelo_fast}")
 
@@ -64,7 +60,6 @@ llm = ChatGoogleGenerativeAI(model=modelo_fast, temperature=0)
 tools = [consultar_pedido, consultar_manual_tecnico]
 agente_sistema = create_react_agent(llm, tools)
 
-# --- LOOP DE INTERAÇÃO LIMPO (SEM SIGNATURE) ---
 print("\n" + "="*50)
 print("🤖 Sistema Multi-Agente Online!")
 print("="*50)

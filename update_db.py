@@ -4,10 +4,8 @@ def atualizar_banco():
     conn = sqlite3.connect("erp_mock.db")
     cursor = conn.cursor()
 
-    # Limpa a tabela para não duplicar dados
     cursor.execute("DELETE FROM pedidos")
 
-    # Dados focados em Provedores e Infraestrutura
     novos_pedidos = [
         (1, 'TechNorth Provedores', 'Lote 10x Switch Cisco Nexus 9300', 'Enviado'),
         (2, 'Cariri Conectividade', '500m Fibra Óptica Monomodo G.652D', 'Pendente'),
