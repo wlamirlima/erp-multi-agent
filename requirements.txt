@@ -3,3 +3,8 @@ langgraph
 python-dotenv
 google-generativeai
 langchain-core
+langchain-community
+langchain-huggingface
+langchain-text-splitters
+faiss-cpu
+sentence-transformers

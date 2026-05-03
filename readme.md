@@ -1,32 +1,30 @@
-# 🤖 Agente ERP Inteligente com Orquestração LangGraph
-<img width="1920" height="1035" alt="image" src="https://github.com/user-attachments/assets/caca22b7-520d-4371-b99c-ba5cacaad5da" />
-<br><br>
-Este projeto consiste em um **Agente de IA Autônomo (AI Agent)** integrado a um banco de dados relacional (ERP simulado). O sistema utiliza modelos de linguagem de última geração para interpretar solicitações em linguagem natural, decidir pela execução de ferramentas externas e processar dados estruturados de forma resiliente.
+# 🤖 ERP Multi-Agent: Inteligência Artificial com Orquestração LangGraph & RAG
 
-## 🏗️ Diferenciais do Projeto (Mentalidade de Infraestrutura)
+Este projeto consiste em um **Agente de IA Autônomo** de nível empresarial que integra operações de um **ERP Relacional** com uma **Base de Conhecimento Técnica (RAG)**. O sistema utiliza grafos de estado para gerenciar o fluxo de conversação, permitindo que a IA tome decisões executáveis para resolver problemas de infraestrutura de rede, logística e suporte técnico.
 
-Diferente de scripts simples de IA, este projeto foi construído com foco em **resiliência e disponibilidade**, aplicando conceitos de Redes e TI no desenvolvimento de software:
+## 🏗️ Diferenciais de Engenharia
 
-* **Discovery Dinâmico de Modelos (Scanner):** Implementação de uma lógica de "Handshake" que realiza o scanner dos modelos disponíveis na chave de API do Google. Isso garante o funcionamento contínuo (failover) mesmo que um modelo específico esteja indisponível ou sem cota.
-* **Padrão ReAct (Reason + Act):** O agente utiliza raciocínio lógico para decidir, de forma autônoma, quando deve acionar o banco de dados via **Tool Calling**.
-* **Orquestração via LangGraph:** Utilização de grafos de estado para gerenciar o fluxo de conversação, permitindo que a IA mantenha o contexto e execute loops de consulta e resposta de forma estruturada.
+O projeto foi construído com foco em **resiliência, escalabilidade e persistência**, aplicando conceitos de infraestrutura de TI no desenvolvimento de software:
 
-
+*   **RAG Analítico (Retrieval-Augmented Generation):** Integração de uma base de conhecimento em Markdown via vetores (FAISS). A IA consulta manuais de MikroTik, Cisco Nexus e terminais satelitais ORBCOMM para fornecer diagnósticos precisos.
+*   **Memória Persistente (Stateful Design):** Implementação de `MemorySaver` via LangGraph. O agente mantém o contexto de threads específicas, permitindo que o usuário faça perguntas de acompanhamento sem repetir dados anteriores.
+*   **Scanner Dinâmico de Modelos (Failover):** Lógica de "Handshake" que realiza o scanner dos modelos disponíveis na API do Google (Gemini 1.5 Flash/Pro), garantindo o funcionamento contínuo mesmo com variações de cota.
+*   **Interface Otimizada (Professional Console):** Inicialização silenciosa com supressão de logs de baixo nível (TensorFlow/HuggingFace) e limpeza automática de terminal para uma experiência de usuário limpa.
 
 ## 🛠️ Stack Tecnológica
 
-* **Linguagem:** Python 3.13
-* **Framework de Agentes:** LangChain & LangGraph (Stateful Multi-Actor Applications).
-* **Cérebro (LLM):** Google Gemini 1.5 Flash / 2.0 (via Google AI Studio).
-* **Banco de Dados:** SQLite (ERP Mock).
-* **Bibliotecas Auxiliares:** `google-generativeai`, `python-dotenv`.
+*   **Linguagem:** Python 3.13
+*   **Framework de Agentes:** LangChain & LangGraph (Orquestração de estados)
+*   **Cérebro (LLM):** Google Gemini Series (via Google AI Studio)
+*   **Vector Database:** FAISS com Embeddings locais `all-MiniLM-L6-v2`
+*   **Banco de Dados:** SQLite (Simulação de ERP)
 
-## 📂 Estrutura do Repositório
+## 📂 Estrutura do Ecossistema
 
-* `main.py`: Núcleo do agente com lógica de auto-discovery, definição de ferramentas e loop de chat.
-* `erp_mock.db`: Base de dados SQLite simulando registros de clientes e pedidos.
-* `.env`: Configurações de ambiente (Chaves de API).
-* `requirements.txt`: Lista de dependências para fácil instalação.
+*   `multi_agent.py`: Núcleo do agente com lógica de persistência, ferramentas e RAG.
+*   `data/manuais.md`: Base de conhecimento estruturada com metadados de hardware e matrizes de troubleshooting.
+*   `erp_mock.db`: Banco de dados relacional com registros de clientes, pedidos e status logístico.
+*   `requirements.txt`: Lista consolidada de dependências para o ambiente de produção.
 
 ## 🚀 Como Executar
 
@@ -36,21 +34,21 @@ Diferente de scripts simples de IA, este projeto foi construído com foco em **r
     cd erp-multi-agent
     ```
 
-2.  **Configure suas variáveis de ambiente:**
-    Crie um arquivo `.env` na raiz e adicione sua chave de API:
+2.  **Configure as Variáveis de Ambiente:**
+    Crie um arquivo `.env` na raiz:
     ```env
     GOOGLE_API_KEY=sua_chave_aqui
     ```
 
-3.  **Instale as dependências:**
+3.  **Instale as Dependências:**
     ```bash
     pip install -r requirements.txt
     ```
 
 4.  **Inicie o Agente:**
     ```bash
-    python main.py
+    python multi_agent.py
     ```
 
 ---
-**Conectando Redes e IA:** Este projeto reflete a aplicação de conceitos de infraestrutura (como redundância e descoberta de serviços) no desenvolvimento de soluções modernas de Inteligência Artificial Generativa.
+**Conectando Redes e IA:** Este repositório reflete a aplicação de conceitos de infraestrutura (como redundância, descoberta de serviços e telemetria) no desenvolvimento de soluções modernas de Inteligência Artificial Generativa.
