@@ -3,6 +3,7 @@ import sqlite3
 import warnings
 import sys
 import subprocess
+import re
 
 warnings.filterwarnings("ignore")
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
@@ -35,15 +36,13 @@ def discovery_modelo():
         for m in modelos:
             if "gemini-1.5-flash" in m:
                 return m
-        return modelos[0] if modelos else "models/gemini-pro"
+        return modelos[0] if modelos else "models/gemini-1.5-flash"
     except Exception:
         return "models/gemini-1.5-flash"
 
 sys.stdout = open(os.devnull, 'w')
 sys.stderr = open(os.devnull, 'w')
-
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-
 sys.stdout = sys.__stdout__
 sys.stderr = sys.__stderr__
 
@@ -63,24 +62,30 @@ def consultar_manual_tecnico(pergunta: str) -> str:
 
 @tool
 def consultar_pedido(termo: str) -> str:
-    """Consulta pedidos por ID ou Nome do Cliente no banco ERP."""
-    conn = sqlite3.connect("erp_mock.db")
-    cursor = conn.cursor()
-    if str(termo).isdigit():
-        cursor.execute("SELECT id, cliente, produto, status FROM pedidos WHERE id = ?", (int(termo),))
-    else:
-        cursor.execute("SELECT id, cliente, produto, status FROM pedidos WHERE cliente LIKE ?", (f'%{termo}%',))
-    res = cursor.fetchone()
-    conn.close()
-    if res:
-        return f"Pedido {res[0]}: {res[1]} comprou {res[2]}. Status: {res[3]}"
-    return "Pedido não encontrado."
+    """Consulta pedidos no banco ERP por ID numérico ou Nome do Cliente."""
+    try:
+        conn = sqlite3.connect("erp_mock.db")
+        cursor = conn.cursor()
+        
+        apenas_numeros = re.sub(r'\D', '', str(termo))
+        
+        if apenas_numeros:
+            cursor.execute("SELECT id, cliente, produto, status FROM pedidos WHERE id = ?", (int(apenas_numeros),))
+        else:
+            cursor.execute("SELECT id, cliente, produto, status FROM pedidos WHERE cliente LIKE ?", (f'%{termo}%',))
+        
+        res = cursor.fetchone()
+        conn.close()
+        if res:
+            return f"RESULTADO_ERP: ID {res[0]} | Cliente: {res[1]} | Produto: {res[2]} | Status: {res[3]}"
+        return f"AVISO: Nenhuma correspondência para '{termo}' no banco ERP."
+    except Exception as e:
+        return f"ERRO_SQL: {str(e)}"
 
 nome_modelo = discovery_modelo()
-
 subprocess.run("cls", shell=True)
 
-print(f"✅ Modelo Estabilizado: {nome_modelo}")
+print(f"✅ Link Estabilizado: {nome_modelo}")
 
 llm = ChatGoogleGenerativeAI(model=nome_modelo, temperature=0)
 tools = [consultar_pedido, consultar_manual_tecnico]
@@ -92,7 +97,8 @@ print("\n" + "="*50)
 print("🤖 Sistema Multi-Agente Online")
 print("="*50)
 
-config = {"configurable": {"thread_id": "sessao_engenheiro_wlamir"}}
+config = {"configurable": {"thread_id": "sessao_vaga_ia"}}
+total_tokens = 0
 
 while True:
     pergunta = input("\nVocê: ")
@@ -107,8 +113,14 @@ while True:
         
         if final_event:
             msg_obj = final_event['messages'][-1]
-            conteudo = msg_obj.content
             
+            if hasattr(msg_obj, 'usage_metadata') and msg_obj.usage_metadata:
+                usage = msg_obj.usage_metadata
+                atual = usage.get('total_token_count', 0)
+                total_tokens += atual
+                print(f"--- [TELEMETRIA] Tokens: {atual} | Acumulado: {total_tokens} ---")
+
+            conteudo = msg_obj.content
             if isinstance(conteudo, list):
                 resposta_final = " ".join([str(c.get("text", c)) if isinstance(c, dict) else str(c) for c in conteudo])
             else:
