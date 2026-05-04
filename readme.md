@@ -14,13 +14,20 @@ O projeto foi construído com foco em **resiliência, observabilidade e persist�
 *   **Memória Persistente (Stateful Design):** Implementação de `MemorySaver` via LangGraph. O agente mantém o contexto de threads específicas, permitindo perguntas de acompanhamento sem repetição de dados anteriores.
 *   **Scanner Dinâmico de Modelos (Failover):** Lógica de "Handshake" que realiza o scanner dos modelos disponíveis na API do Google, garantindo o funcionamento contínuo mesmo com variações de cota.
 
+## 🔭 Observabilidade & Interface
+
+O sistema prioriza a clareza operacional através de um dashboard CLI:
+1.  **⚙️ Roteador:** Logs em tempo real indicando qual ferramenta (ERP ou RAG) está sendo acionada.
+2.  **📊 Telemetria:** Exibição imediata do custo da rodada e saldo acumulado na sessão atual.
+3.  **✅ Status:** Confirmação visual de conexão e estabilidade do sistema multi-agente.
+
 ## 🛠️ Stack Tecnológica
 
 *   **Linguagem:** Python 3.13
 *   **Framework de Agentes:** LangChain & LangGraph (Orquestração de estados)
 *   **Cérebro (LLM):** Google Gemini Series (via Google AI Studio)
 *   **Vector Database:** FAISS com Embeddings locais `all-MiniLM-L6-v2`
-*   **Banco de Dados:** SQLite (Simulação de ERP)
+*   **Banco de Dados:** SQLite (ERP Relacional e Data Warehouse de Telemetria)
 
 ## 📂 Estrutura do Ecossistema
 
