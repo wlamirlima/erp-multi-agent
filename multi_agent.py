@@ -109,7 +109,7 @@ current_key = next(key_pool)
 agente_sistema, nome_modelo = configurar_agente(current_key)
 
 subprocess.run("cls" if os.name == "nt" else "clear", shell=True)
-print(f"✅ Link Estabilizado | Pool: {len(keys)} chaves | Modelo: {nome_modelo}")
+print(f"✅ CONECTADO | Pool: {len(keys)} chaves | Agente pronto.")
 print("-" * 55)
 
 thread_id = "sessao_vaga_wlamir"
@@ -133,7 +133,7 @@ while True:
                 last_msg = event['messages'][-1]
                 if hasattr(last_msg, 'tool_calls') and last_msg.tool_calls:
                     for call in last_msg.tool_calls:
-                        print(f"⚙️  Agente Roteador: Acionando {call['name']}...")
+                        print(f"⚙️  Roteador: Buscando em {call['name']}...")
                 final_event = event
             
             if final_event:
@@ -143,21 +143,20 @@ while True:
                     usage = msg_obj.usage_metadata.get('total_token_count', 0)
                     total_tokens_sessao += usage
                     registrar_telemetria(thread_id, usage, nome_modelo)
-                    print(f"--- [TELEMETRIA] Rodada: {usage} | Total Acumulado: {total_tokens_sessao} ---")
+                    print(f"📊 Uso: {usage} tokens (Total: {total_tokens_sessao})")
                 
                 txt = ""
                 if isinstance(msg_obj.content, str): txt = msg_obj.content
                 elif isinstance(msg_obj.content, list):
                     for p in msg_obj.content:
                         if isinstance(p, dict) and 'text' in p: txt += p['text']
-                        elif isinstance(p, str): txt += p
                 
                 print(f"\nAssistente: {txt.strip()}")
                 sucesso = True
                 
         except Exception as e:
-            if "429" in str(e) or "404" in str(e):
-                print(f"🔄 Ajustando conexão e rotacionando chave...")
+            if "429" in str(e):
+                print(f"🔄 Rotacionando chave...")
                 current_key = next(key_pool)
                 agente_sistema, nome_modelo = configurar_agente(current_key)
                 time.sleep(1)
