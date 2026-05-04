@@ -2,7 +2,7 @@
 
 Este projeto consiste em um **Agente de IA Autônomo** de nível empresarial que integra operações de um **ERP Relacional** com uma **Base de Conhecimento Técnica (RAG)**. O sistema utiliza grafos de estado para gerenciar o fluxo de conversação, permitindo que a IA tome decisões executáveis para resolver problemas de infraestrutura de rede, logística e suporte técnico.
 
-## Demonstração do Sistema:![alt text](image.png)
+# Demonstração do Sistema:![alt text](image.png)
 
 ## 🏗️ Diferenciais de Engenharia
 
