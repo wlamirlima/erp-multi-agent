@@ -109,8 +109,11 @@ current_key = next(key_pool)
 agente_sistema, nome_modelo = configurar_agente(current_key)
 
 subprocess.run("cls" if os.name == "nt" else "clear", shell=True)
-print(f"✅ CONECTADO | Pool: {len(keys)} chaves | Agente pronto.")
-print("-" * 55)
+print(f"=====================================================")
+print(f"             🤖 MULTI-AGENT SYSTEM ONLINE            ")
+print(f"=====================================================")
+print(f"STATUS: Conectado | POOL: {len(keys)} chaves | AGENTE: Pronto")
+print("-" * 53)
 
 thread_id = "sessao_vaga_wlamir"
 config = {"configurable": {"thread_id": thread_id}}
@@ -133,7 +136,7 @@ while True:
                 last_msg = event['messages'][-1]
                 if hasattr(last_msg, 'tool_calls') and last_msg.tool_calls:
                     for call in last_msg.tool_calls:
-                        print(f"⚙️  Roteador: Buscando em {call['name']}...")
+                        print(f"⚙️  Roteador: Acionando {call['name']}...")
                 final_event = event
             
             if final_event:
@@ -143,7 +146,7 @@ while True:
                     usage = msg_obj.usage_metadata.get('total_token_count', 0)
                     total_tokens_sessao += usage
                     registrar_telemetria(thread_id, usage, nome_modelo)
-                    print(f"📊 Uso: {usage} tokens (Total: {total_tokens_sessao})")
+                    print(f"📊 Uso: {usage} tokens (Sessão: {total_tokens_sessao})")
                 
                 txt = ""
                 if isinstance(msg_obj.content, str): txt = msg_obj.content
@@ -156,7 +159,7 @@ while True:
                 
         except Exception as e:
             if "429" in str(e):
-                print(f"🔄 Rotacionando chave...")
+                print(f"🔄 Limite de cota. Alternando chave...")
                 current_key = next(key_pool)
                 agente_sistema, nome_modelo = configurar_agente(current_key)
                 time.sleep(1)
