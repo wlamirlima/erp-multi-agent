@@ -108,12 +108,13 @@ instrucao = "Você é um Engenheiro de IA focado em automação técnica. Use as
 current_key = next(key_pool)
 agente_sistema, nome_modelo = configurar_agente(current_key)
 
-subprocess.run("cls", shell=True)
-print(f"✅ Link Estabilizado | Pool: {len(keys)} chaves")
+subprocess.run("cls" if os.name == "nt" else "clear", shell=True)
+print(f"✅ Link Estabilizado | Pool: {len(keys)} chaves | Modelo: {nome_modelo}")
+print("-" * 55)
 
 thread_id = "sessao_vaga_wlamir"
 config = {"configurable": {"thread_id": thread_id}}
-total_tokens = 0
+total_tokens_sessao = 0
 
 while True:
     pergunta = input("\nVocê: ")
@@ -129,6 +130,10 @@ while True:
                 config=config, 
                 stream_mode="values"
             ):
+                last_msg = event['messages'][-1]
+                if hasattr(last_msg, 'tool_calls') and last_msg.tool_calls:
+                    for call in last_msg.tool_calls:
+                        print(f"⚙️  Agente Roteador: Acionando {call['name']}...")
                 final_event = event
             
             if final_event:
@@ -136,24 +141,23 @@ while True:
                 
                 if hasattr(msg_obj, 'usage_metadata') and msg_obj.usage_metadata:
                     usage = msg_obj.usage_metadata.get('total_token_count', 0)
-                    total_tokens += usage
+                    total_tokens_sessao += usage
                     registrar_telemetria(thread_id, usage, nome_modelo)
-                    print(f"--- [TELEMETRIA] Rodada: {usage} | Total: {total_tokens} ---")
+                    print(f"--- [TELEMETRIA] Rodada: {usage} | Total Acumulado: {total_tokens_sessao} ---")
                 
-                if isinstance(msg_obj.content, str):
-                    print(f"\nAssistente: {msg_obj.content.strip()}")
+                txt = ""
+                if isinstance(msg_obj.content, str): txt = msg_obj.content
                 elif isinstance(msg_obj.content, list):
-                    for part in msg_obj.content:
-                        if isinstance(part, dict) and 'text' in part:
-                            print(f"\nAssistente: {part['text'].strip()}")
-                        elif isinstance(part, str):
-                            print(f"\nAssistente: {part.strip()}")
+                    for p in msg_obj.content:
+                        if isinstance(p, dict) and 'text' in p: txt += p['text']
+                        elif isinstance(p, str): txt += p
                 
+                print(f"\nAssistente: {txt.strip()}")
                 sucesso = True
                 
         except Exception as e:
             if "429" in str(e) or "404" in str(e):
-                print(f"🔄 Ajustando conexão...")
+                print(f"🔄 Ajustando conexão e rotacionando chave...")
                 current_key = next(key_pool)
                 agente_sistema, nome_modelo = configurar_agente(current_key)
                 time.sleep(1)
